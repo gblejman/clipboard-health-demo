@@ -1,12 +1,14 @@
 import { PrismaClient, Profession } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
+import * as moment from 'moment';
+
 const prisma = new PrismaClient();
 
 const maxFacilities = 10;
 const maxDocuments = 10;
 const maxDocumentWorkers = 500;
 const maxWorkers = 100;
-const maxShifts = 20 * 1000 * 100; // 2M
+const maxShifts = 20 * 1000 * 10; // 200K
 const startHours = [5, 13, 20];
 const shiftHours = 5;
 
@@ -41,31 +43,60 @@ interface StartEnd {
 }
 
 async function createDeterministicWorker() {
-  console.log("Start seeding deterministic workers ...")
-  const worker = await prisma.worker.create({data: {name: "Deterministic #1", profession: Profession.CNA, is_active: true}})
-  const worker2 = await prisma.worker.create({data: {name: "Deterministic #2", profession: Profession.LVN, is_active: true}})
-  const worker3 = await prisma.worker.create({data: {name: "Deterministic #3", profession: Profession.RN, is_active: true}})
-  const workerDocuments = Array.from({length: maxDocuments}, (_, i) => i + 1).map((number) => ({worker_id: worker.id, document_id: number}))
-  const workerDocuments2 = Array.from({length: maxDocuments}, (_, i) => i + 1).map((number) => ({worker_id: worker2.id, document_id: number}))
-  const workerDocuments3 = Array.from({length: maxDocuments}, (_, i) => i + 1).map((number) => ({worker_id: worker3.id, document_id: number}))
-  await prisma.documentWorker.createMany({data: workerDocuments})
-  await prisma.documentWorker.createMany({data: workerDocuments2})
-  await prisma.documentWorker.createMany({data: workerDocuments3})
-  console.log("CNA worker ID: " + worker.id)
-  console.log("LVN worker ID: " + worker2.id)
-  console.log("RN worker ID: " + worker3.id)
-  console.log("Finished seeding deterministic workers ...")
+  console.log('Start seeding deterministic workers ...');
+  const worker = await prisma.worker.create({
+    data: {
+      name: 'Deterministic #1',
+      profession: Profession.CNA,
+      is_active: true,
+    },
+  });
+  const worker2 = await prisma.worker.create({
+    data: {
+      name: 'Deterministic #2',
+      profession: Profession.LVN,
+      is_active: true,
+    },
+  });
+  const worker3 = await prisma.worker.create({
+    data: {
+      name: 'Deterministic #3',
+      profession: Profession.RN,
+      is_active: true,
+    },
+  });
+  const workerDocuments = Array.from(
+    { length: maxDocuments },
+    (_, i) => i + 1,
+  ).map((number) => ({ worker_id: worker.id, document_id: number }));
+  const workerDocuments2 = Array.from(
+    { length: maxDocuments },
+    (_, i) => i + 1,
+  ).map((number) => ({ worker_id: worker2.id, document_id: number }));
+  const workerDocuments3 = Array.from(
+    { length: maxDocuments },
+    (_, i) => i + 1,
+  ).map((number) => ({ worker_id: worker3.id, document_id: number }));
+  await prisma.documentWorker.createMany({ data: workerDocuments });
+  await prisma.documentWorker.createMany({ data: workerDocuments2 });
+  await prisma.documentWorker.createMany({ data: workerDocuments3 });
+  console.log('CNA worker ID: ' + worker.id);
+  console.log('LVN worker ID: ' + worker2.id);
+  console.log('RN worker ID: ' + worker3.id);
+  console.log('Finished seeding deterministic workers ...');
 }
 
 function returnRandomStartAndEnd(): StartEnd {
-  const day = returnRandomNumberBetweenOneAndLimit(31);
+  const day = returnRandomNumberBetweenOneAndLimit(365 * 5) - 1; // distribute through 5 years starting today
   const startHourIndex = returnRandomNumberBetweenOneAndLimit(3) - 1;
   const startHour = startHours[startHourIndex];
-  const start = new Date();
-  start.setFullYear(2023, 1, day);
-  start.setHours(startHour, 0, 0);
-  const end = new Date(start.getTime());
-  end.setTime(end.getTime() + shiftHours * 60 * 60 * 1000);
+  const start = moment()
+    .startOf('day')
+    .add(day, 'days')
+    .set('hour', startHour)
+    .toDate();
+  const end = moment(start).add(shiftHours, 'hours').toDate();
+
   return {
     start,
     end,
