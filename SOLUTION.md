@@ -29,19 +29,19 @@ Thus, I seed/teardown additional test data before each suite:
 - Use case 1: Shift1 for Facility1 which requires no docs, Worker1 has no docs -> Shift1 should exist in results for Worker1
 - Use case 2: Shift2 for Facility2 requires Doc1, worker has Doc1 -> Shift1 and Shift2 should exist in results for Worker2
 
-- Run with: `npm test` - will run both service unit tests + server e2e tests
+- Run with: `npm test` - will run both service unit tests + server e2e tests. It doesn't require the api server to be running as it injects requests
 
 # Api Server
 
-Fastify server exposing /api/shifts endpoint. TODO: Properly separate into modules/routes/controllers
+Fastify server exposing the endpoint. TODO: Properly separate into modules/routes/controllers
 
-- Run with `npm run api:dev`
+- Run with `npm run api:dev` -> http://localhost:3000/api/shifts?workerId=101
 
 # Web Server
 
 A short demo to showcase finding shifts by worker id and displaying in calendar format
 
-- cd into /web and run `npm run dev`
+- cd into /web and run `npm run dev` -> http://localhost:5173/
 
 # About Performance
 
