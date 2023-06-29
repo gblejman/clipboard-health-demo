@@ -4,4 +4,4 @@
 
 # Start the app, have fun
 npm run prisma-init
-npx prisma db seed
+npx prisma migrate reset --force # recreate db and seed
