@@ -1,11 +1,16 @@
 import { PrismaClient, Shift } from '@prisma/client';
 
-export interface ShiftService {
-  find: ({ workerId }: { workerId: number }) => Promise<Shift[]>;
-}
+export type FindInput = {
+  workerId: number;
+  strategy?: 'memory' | 'raw';
+};
+
+export type ShiftService = {
+  find: ({ workerId }: FindInput) => Promise<Shift[]>;
+};
 
 const create = ({ prisma }: { prisma: PrismaClient }): ShiftService => {
-  const find = async ({ workerId }: { workerId: number }) => {
+  const findInMemory = async ({ workerId }: FindInput) => {
     if (!workerId) {
       return [];
     }
@@ -59,6 +64,57 @@ const create = ({ prisma }: { prisma: PrismaClient }): ShiftService => {
     });
 
     return filtered;
+  };
+
+  const findRaw = async ({ workerId }: FindInput) => {
+    if (!workerId) {
+      return [];
+    }
+
+    const worker = await prisma.worker.findUniqueOrThrow({
+      where: {
+        id: workerId,
+      },
+    });
+
+    if (!worker.is_active) {
+      return [];
+    }
+
+    const shifts: Shift[] = await prisma.$queryRaw`
+      select s.* from "Shift" s
+        join "Facility" f on f.id = s.facility_id and not exists (
+          select fr.document_id from "FacilityRequirement" fr where fr.facility_id = f.id
+          except
+          select dw.document_id from "DocumentWorker" dw where worker_id = ${worker.id}
+        )
+        where 
+        s.is_deleted = false and
+        s.worker_id is null and
+        f.is_active = true
+        order by s.start asc
+    `;
+
+    return shifts;
+  };
+
+  const findStrategy = {
+    memory: findInMemory,
+    raw: findRaw,
+  };
+
+  const find = async ({ workerId, strategy = 'memory' }: FindInput) => {
+    const start = performance.now();
+    const data = await (findStrategy[strategy] || 'memory')({ workerId });
+    const end = performance.now();
+
+    console.log(`ShiftService#find`, {
+      workerId,
+      strategy,
+      timeMs: end - start,
+    });
+
+    return data;
   };
 
   return { find };
