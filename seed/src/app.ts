@@ -57,6 +57,7 @@ const create = async ({
       return reply.status(400).send({
         statusCode: 400,
         error: 'Bad Request',
+        message: 'Validation Error',
         cause: error.issues,
       });
     }
