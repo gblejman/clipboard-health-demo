@@ -22,6 +22,26 @@ describe('GET /shifts', () => {
   });
 
   describe('memory impl', () => {
+    test('should fail with status 400 when invalid input', async () => {
+      const response = await app.inject({
+        method: 'get',
+        url: '/api/shifts',
+        query: { workerId: '-1' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    test('should fail with status 404 when not found', async () => {
+      const response = await app.inject({
+        method: 'get',
+        url: '/api/shifts',
+        query: { workerId: '1000000' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     test('should find shifts where worker has no docs', async () => {
       const { worker1, shift1, shift2 } = data;
 
@@ -56,6 +76,26 @@ describe('GET /shifts', () => {
   });
 
   describe('raw impl', () => {
+    test('should fail with status 400 when invalid input', async () => {
+      const response = await app.inject({
+        method: 'get',
+        url: '/api/shifts',
+        query: { workerId: '-1' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    test('should fail with status 404 when not found', async () => {
+      const response = await app.inject({
+        method: 'get',
+        url: '/api/shifts',
+        query: { workerId: '1000000' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     test('should find shifts where worker has no docs', async () => {
       const { worker1, shift1, shift2 } = data;
 
