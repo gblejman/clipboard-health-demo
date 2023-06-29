@@ -9,13 +9,20 @@
     "prisma-init": "npx prisma migrate dev && npx prisma generate",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest"
+    "test": "jest",
+    "api:dev": "npx nodemon src/index.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^8.3.0",
     "@prisma/client": "4.14.0",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.18.0",
     "moment": "^2.29.4",
+    "nodemon": "^2.0.22",
+    "pino": "^8.14.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",

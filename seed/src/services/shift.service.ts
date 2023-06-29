@@ -1,4 +1,5 @@
 import { PrismaClient, Shift } from '@prisma/client';
+import logger from '../logger';
 
 export type FindInput = {
   workerId: number;
@@ -10,6 +11,8 @@ export type ShiftService = {
 };
 
 const create = ({ prisma }: { prisma: PrismaClient }): ShiftService => {
+  const log = logger.child({ module: 'shiftService' });
+
   const findInMemory = async ({ workerId }: FindInput) => {
     if (!workerId) {
       return [];
@@ -104,17 +107,15 @@ const create = ({ prisma }: { prisma: PrismaClient }): ShiftService => {
   };
 
   const find = async ({ workerId, strategy = 'memory' }: FindInput) => {
-    const start = performance.now();
-    const data = await (findStrategy[strategy] || 'memory')({ workerId });
-    const end = performance.now();
-
-    console.log(`ShiftService#find`, {
-      workerId,
-      strategy,
-      timeMs: end - start,
+    log.debug({
+      method: 'find',
+      args: {
+        workerId,
+        strategy,
+      },
     });
 
-    return data;
+    return (findStrategy[strategy] || 'memory')({ workerId });
   };
 
   return { find };
